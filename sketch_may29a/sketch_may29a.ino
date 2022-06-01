@@ -1,66 +1,63 @@
-// inclui a biblioteca:
+#define pinSensorA A0
+#define pinSensorD 8
+//Variavel para armazenar valor de umidade
+int umidade;
+// variavel para controlar valor do botão ligado = 1 e desligado = 0
+int botao = 0;
+// variavel que verificar se o programa está ligado ou desligado
+bool ligado=false;
 
-
-// variáveis do programa
-const int pinoSensor = A0;
-const int pinoValvula = 10;
-const int limiarSeco = 74;
-const int tempoRega = 50; // Tempo de rega em segundos
-int umidadeSolo = 0;
-
-void setup() {
-  
-  pinMode(pinoValvula, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  // Desliga a válvula
-  digitalWrite(pinoValvula, HIGH);
-  // Exibe a mensagem:
-  Serial.print(" Rega ");
-
-  Serial.begin(9600);
-
-
+void setup()
+{
+  // iniciando botões e leds com a portas do arduino e comandos de entrada
+    pinMode(pinSensorD, INPUT);
+    pinMode(5, OUTPUT);
+    pinMode(6, OUTPUT);
+    pinMode(8, INPUT);
+    Serial.begin(9600);
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH); //Liga led azul indicando que está em standBy
-  // Mede a umidade a cada segundo. Faz isso durante uma hora (3600 segundos).
-  for(int i=0; i < 5; i++) {
-    // Exibe a mensagem:
-    Serial.print("Umidade: ");
-    // Faz a leitura do sensor de umidade do solo
-    umidadeSolo = analogRead(pinoSensor);
-    // Converte a variação do sensor de 0 a 1023 para 0 a 100
-    umidadeSolo = map(umidadeSolo, 1023, 0, 0, 100);
-    // Exibe a mensagem no Display LCD:
-    Serial.print(umidadeSolo);
-    Serial.print(" %    ");
-    // Espera um segundo
-    delay(1000);
+
+  if(digitalRead(8))// if verificador para saber se o botão foi apertado
+  {
+    ligado=true;
+    Serial.println("Ligado");
   }
-    //Confere umidade do solo para iniciar a rega
-  if(umidadeSolo < limiarSeco) {
-    digitalWrite(LED_BUILTIN, LOW);    //Desliga o Led azul para tirar do standBy
-    digitalWrite(LED_BUILTIN, HIGH);   // liga o led verde mostrando que está sendo regado 
-    delay(1000);                       // Espera um segundo
-    Serial.println("Solo está sendo regado") //
-    // Liga a válvula
-    digitalWrite(pinoValvula, LOW);
-    // Espera o tempo estipulado
-    delay(tempoRega*1000);
-    digitalWrite(pinoValvula, HIGH);
-      }
-  else {
-    digitalWrite(LED_BUILTIN, LOW);    //Desliga o Led azul para tirar do standBy
+ 
+  if (!ligado) // if verificador mostrado antes de ser apertado o botão
+  {
+    Serial.println("Desligado");
     delay(1000);
-    digitalWrite(LED_BUILTIN, HIGH); //Liga o led Vermelho indicado o término do regamento
-    // Exibe a mensagem no Display LCD:
-    Serial.println("Solo Encharcado ");
-    // Espera o tempo estipulado
-    delay(3000);
-    digitalWrite(LED_BUILTIN, HIGH); //Desliga Led Vermelho
+    return;
   }
+ 
+Serial.print("Status: "); // mostra o status
+
+if (analogRead(pinSensorA) > 450) // lê a umidade de printa na tela através do código abaixo:
+{
+    digitalWrite(5, HIGH); // liga o led verde
+    digitalWrite(6, LOW); // desliga o led vermelho
+    Serial.print("SEM UMIDADE   "); // mostra que o solo está sem umidade
+    Serial.print(" Atuador: "); // mostra o atuador
+    Serial.print("SOLENOIDE LIGADO     "); // mostra que o solenoide está ligado 
+    //digitalWrite(pinSolenoide, HIGH);
+}
+
+else { //Caso a umidade esteja baixa é feito está parte do código; 
+    Serial.print("COM UMIDADE   "); // mostra que o solo já apresenta umidade
+    digitalWrite(5, LOW); // desliga o led verde
+    digitalWrite(6, HIGH); // liga o led vermelho
+    Serial.print(" Atuador: ");
+    Serial.print("SOLENOIDE DESLIGADO   "); // printa que o solenoide está desligado
+    //digitalWrite(pinSolenoide, LOW);
+}
+
+  Serial.print(" Porcentagem: "); // printa a porcetangem 
+  umidade = analogRead(pinSensorA); // adiciona o valor de umidade para o sensor 
+  umidade = map(umidade, 1023, 0, 0, 100); // realiza um map do valor da umidade 
+  Serial.print(umidade); // mostra o valor de umidade
+  Serial.println(" % "); // coloca em porcentagem
+
+  delay(4000);
 }
